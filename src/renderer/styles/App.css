@@ -17,12 +17,14 @@
   height: var(--toolbar-height);
   background-color: var(--toolbar-bg);
   border-bottom: 1px solid var(--border-primary);
+  -webkit-app-region: drag;
 }
 
 .app-addressbar {
   height: var(--addressbar-height);
   background-color: var(--bg-secondary);
   border-bottom: 1px solid var(--border-primary);
+  -webkit-app-region: drag;
 }
 
 .app-content {
@@ -47,6 +49,9 @@
 /* Draggable region exclusions */
 .app-titlebar button,
 .app-titlebar input,
-.app-titlebar .tab {
+.app-titlebar .tab,
+.app-toolbar button,
+.app-toolbar input,
+.app-addressbar input {
   -webkit-app-region: no-drag;
 }

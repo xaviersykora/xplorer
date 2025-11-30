@@ -13,7 +13,6 @@
   align-items: stretch;
   overflow-x: auto;
   overflow-y: hidden;
-  -webkit-app-region: no-drag;
 }
 
 .tabbar-tabs::-webkit-scrollbar {
