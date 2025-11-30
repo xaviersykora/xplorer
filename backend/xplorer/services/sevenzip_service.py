@@ -7,6 +7,7 @@ import os
 import subprocess
 import logging
 import asyncio
+import tempfile
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -175,6 +176,10 @@ class SevenZipService:
             if not sevenzip:
                 return {"success": False, "error": "7-Zip not installed"}
 
+            if not paths:
+                return {"success": False, "error": "No paths provided"}
+
+            list_file_path = None
             try:
                 # Get 7-Zip GUI path (7zG.exe in same directory)
                 sevenzip_dir = os.path.dirname(sevenzip)
@@ -183,17 +188,33 @@ class SevenZipService:
                 if not os.path.isfile(sevenzip_gui):
                     return {"success": False, "error": "7-Zip GUI not found"}
 
-                # 7zG.exe a -mmt -- <files> opens the "Add to Archive" dialog
-                # The "a" command with GUI shows the dialog
-                cmd = [sevenzip_gui, "a", "-mmt", "--"] + paths
+                # Create a temporary file to store the list of paths
+                # This is more robust than passing many paths on the command line
+                with tempfile.NamedTemporaryFile(
+                    mode='w',
+                    encoding='utf-8',
+                    delete=False,
+                    suffix='.txt'
+                ) as list_file:
+                    list_file.write('\n'.join(paths))
+                    list_file_path = list_file.name
+                
+                logger.debug(f"7-Zip list file created at: {list_file_path}")
 
-                # Get the working directory from the first path
-                if paths:
-                    work_dir = os.path.dirname(paths[0])
-                else:
-                    work_dir = None
+                # The "a" command with the -ad switch forces the GUI dialog.
+                # A dummy archive name must be provided for the syntax to be valid.
+                # Using a list file (@filename) is robust for many files/folders.
+                cmd = [sevenzip_gui, "a", "archive.zip", "-ad", f"@{list_file_path}"]
 
-                # Use Popen to not wait for the dialog to close
+                # The working directory should be the common parent of all paths
+                # to ensure relative paths are handled correctly if they exist.
+                # For simplicity with absolute paths, setting it to the parent
+                # of the first file is a reasonable default.
+                work_dir = os.path.dirname(paths[0])
+
+                # Use Popen to not wait for the dialog to close.
+                # We can't easily delete the temp file here because the 7zG.exe
+                # process is detached and might read it later.
                 subprocess.Popen(
                     cmd,
                     cwd=work_dir,
@@ -204,6 +225,9 @@ class SevenZipService:
 
             except Exception as e:
                 logger.error(f"Error opening add to archive dialog: {e}")
+                # Clean up the temp file on error if it was created
+                if list_file_path and os.path.exists(list_file_path):
+                    os.unlink(list_file_path)
                 return {"success": False, "error": str(e)}
 
         return await loop.run_in_executor(_executor, do_show_dialog)

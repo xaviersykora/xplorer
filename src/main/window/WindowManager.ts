@@ -166,6 +166,7 @@ export class WindowManager {
       minWidth: 800,
       minHeight: 600,
       frame: false,
+      title: 'XPLORER', // Explicitly set the window title
       titleBarStyle: 'hidden',
       // Enable transparency for potential glass effect (Windows only)
       transparent: isWindows,

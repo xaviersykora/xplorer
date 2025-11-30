@@ -139,7 +139,7 @@
   /* Row colors glass */
   --row-hover: rgba(42, 45, 50, 0.5);
   --row-selected-unfocused: rgba(55, 55, 65, 0.5);
-  --row-alt: rgba(28, 28, 35, 0.3);
+  --row-alt: rgba(255, 255, 255, 0.07); /* Subtle dark grey for glass effect */
 
   /* Input glass */
   --input-bg: rgba(50, 50, 60, 0.6);
